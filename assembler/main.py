@@ -6,7 +6,7 @@ from compiler.codegen import CodeGenerator
 
 def main():
     # Program name
-    program = 'CSfunc'
+    program = 'CSwhile'
     source_filename = f'programs/{program}.cs'
     as_filename = f'programs/{program}.as'
     mc_filename = f'programs/{program}.mc'

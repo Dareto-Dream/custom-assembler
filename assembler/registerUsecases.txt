@@ -1,0 +1,37 @@
+Register Usage
+r0 (Zero Register):
+
+Always holds the value 0.
+Useful for comparisons, offsets, and initialization.
+r1 (General-Purpose Register):
+
+Often used as an accumulator for calculations or temporary storage for results.
+r2 (Address Register):
+
+Typically used as a base address or pointer for memory operations (lod, str).
+r3 (General-Purpose Register):
+
+Commonly used for intermediate values in calculations or condition checking.
+r4 (General-Purpose Register):
+
+Frequently used as a secondary operand in arithmetic or comparisons.
+r5 (General-Purpose Register):
+
+Could be reserved for loop counters or tracking iterations in loops.
+r6 to r8 (General-Purpose Registers):
+
+Often used for temporary values, additional operands, or to store intermediate results.
+r9 to r12 (Function Call Registers):
+
+Can be used to pass arguments to functions and hold return values.
+r13 (Stack Pointer):
+
+Points to the current top of the stack.
+Used for managing function calls, local variables, and saving/restoring registers.
+r14 (Frame Pointer):
+
+Tracks the base of the current stack frame.
+Useful for accessing function parameters and local variables relative to the stack frame.
+r15 (Return Address):
+
+Holds the address to return to after a function call (cal/ret).

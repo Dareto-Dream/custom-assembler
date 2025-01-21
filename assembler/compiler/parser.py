@@ -53,7 +53,14 @@ class IfStatement:
 
     def __repr__(self):
         return f"IfStatement(condition={self.condition}, body={self.body})"
+    
+class WhileStatement:
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
 
+    def __repr__(self):
+        return f"WhileStatement(condition={self.condition}, body={self.body})"
 
 class FunctionCall:
     def __init__(self, name, arguments):
@@ -144,31 +151,50 @@ class Parser:
 
     def parse_statement(self):
         """Parse a single statement."""
+        print(f"DEBUG: Parsing statement, current token: {self.peek()}")
         if self.check("RBRACE"):
             return None  # End of a block
         if self.check("KEYWORD", "if"):
             return self.parse_if_statement()
         elif self.check("KEYWORD", "return"):
             return self.parse_return_statement()
-        elif self.check("IDENTIFIER") and self.check_next("COMPARISON"):  # Handle assignments
+        elif self.check("KEYWORD", "while"):
+            return self.parse_while_statement()
+        elif self.check("IDENTIFIER") and self.check_next("COMPARISON", "="):  # Assignment
             return self.parse_assignment()
-        elif self.check("IDENTIFIER") and self.check_next("LPAREN"):  # Handle function calls
+        elif self.check("IDENTIFIER") and self.check_next("LPAREN"):  # Function call
             return self.parse_function_call()
-        elif self.check("KEYWORD"):  # Handle variable declarations
+        elif self.check("KEYWORD"):  # Variable declaration
             return self.parse_variable_declaration()
         else:
             raise SyntaxError(f"Unknown statement: {self.peek()}")
+
+
+    def parse_while_statement(self):
+        """Parse a while statement."""
+        self.consume("KEYWORD", "while")
+        self.consume("LPAREN")
+        condition = self.consume_condition()
+        self.consume("RPAREN")
+        self.consume("LBRACE")
+        body = []
+        while not self.check("RBRACE"):
+            body.append(self.parse_statement())
+        self.consume("RBRACE")
+        return WhileStatement(condition, body)
+
 
 
         
     def parse_assignment(self):
         """Parse an assignment statement."""
         print(f"DEBUG: Parsing assignment, current token: {self.peek()}")
-        name = self.consume("IDENTIFIER")[1]  # Variable being assigned
-        self.consume("COMPARISON", "=")  # Expect '='
-        value = self.consume_expression()  # Parse the right-hand side expression
-        self.consume("SEMICOLON")  # Expect ';' at the end
-        return VariableDeclaration(var_type=None, name=name, value=value)  # Use `None` for type in assignments
+        name = self.consume("IDENTIFIER")[1]  # Variable name
+        self.consume("COMPARISON", "=")       # Equals sign
+        value = self.consume_expression()     # Right-hand side (expression)
+        self.consume("SEMICOLON")             # Semicolon to end the statement
+        return VariableDeclaration(None, name, value)
+
 
     def parse_variable_declaration(self):
         var_type = self.consume("KEYWORD")[1]
@@ -215,10 +241,9 @@ class Parser:
         return (operator, left, int(right))
 
     def consume_expression(self):
-        if self.check("IDENTIFIER") and self.check_next("LPAREN"):
-            return self.parse_function_call()
+        """Parse an expression (e.g., x + 1 or add(5, 10))."""
         left = self.consume("IDENTIFIER" if self.check("IDENTIFIER") else "NUMBER")[1]
-        if self.check("OPERATOR"):
+        if self.check("OPERATOR"):  # Handle binary operators
             operator = self.consume("OPERATOR")[1]
             right = self.consume("IDENTIFIER" if self.check("IDENTIFIER") else "NUMBER")[1]
             return (operator, left, right)
@@ -236,10 +261,12 @@ class Parser:
         token = self.peek()
         return token[0] == token_type and (value is None or token[1] == value)
 
-    def check_next(self, token_type):
+    def check_next(self, token_type, value=None):
+        """Check the type and optionally the value of the next token."""
         if self.is_at_end() or self.current + 1 >= len(self.tokens):
             return False
-        return self.tokens[self.current + 1][0] == token_type
+        next_token = self.tokens[self.current + 1]
+        return next_token[0] == token_type and (value is None or next_token[1] == value)
 
     def peek(self):
         return self.tokens[self.current]

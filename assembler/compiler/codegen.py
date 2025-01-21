@@ -1,4 +1,4 @@
-from compiler.parser import VariableDeclaration, IfStatement, Program, Namespace, Class, Method, FunctionCall, ReturnStatement
+from compiler.parser import VariableDeclaration, IfStatement, Program, Namespace, Class, Method, FunctionCall, ReturnStatement, WhileStatement
 
 
 class CodeGenerator:
@@ -9,11 +9,41 @@ class CodeGenerator:
         self.next_free_address = 0  # Tracks the next available memory address
         self.label_count = 0  # Counter for generating unique labels
 
-    def generate(self, ast):
-        """Traverse the AST and generate assembly code."""
+    def generate(self, ast): # used to generate calls for entry points and functions
+        """Generate assembly from the AST."""
+        # Insert OnStart if it exists
+        for namespace in ast.namespaces:
+            for klass in namespace.classes:
+                for method in klass.methods:
+                    if method.name == "OnStart":
+                        self.code.append("cal .OnStart")
+
+        # Insert Main
+        main_found = False
+        for namespace in ast.namespaces:
+            for klass in namespace.classes:
+                for method in klass.methods:
+                    if method.name == "Main":
+                        self.code.append("cal .Main")
+                        main_found = True
+
+        if not main_found:
+            raise SyntaxError("No entry point (Main method) found.")
+
+        # Insert OnEnd if it exists
+        for namespace in ast.namespaces:
+            for klass in namespace.classes:
+                for method in klass.methods:
+                    if method.name == "OnEnd":
+                        self.code.append("cal .OnEnd")
+
+        # Terminate program
+        self.code.append("hlt")
+
+        # Generate functions
         for namespace in ast.namespaces:
             self.generate_namespace(namespace)
-        self.code.append("hlt")  # Add HLT to terminate the program
+
         return "\n".join(self.code)
 
     def generate_namespace(self, namespace):
@@ -38,6 +68,33 @@ class CodeGenerator:
         # Add return instruction at the end
         self.code.append("ret")
 
+    def generate_while_statement(self, while_statement):
+        """Generate assembly for while loops."""
+        start_label = self.get_new_label("while_start")
+        end_label = self.get_new_label("while_end")
+
+        # Start label for the loop condition
+        self.code.append(f"{start_label}")
+
+        # Generate the condition
+        condition = while_statement.condition
+        if isinstance(condition, tuple):
+            operator, left, right = condition
+            branch_condition = self.generate_condition(operator, left, right)
+
+            # Conditional branch to exit loop
+            self.code.append(f"brh {branch_condition} {end_label}")
+
+        # Generate the body of the loop
+        for stmt in while_statement.body:
+            self.generate_statement(stmt)
+
+        # Jump back to the start of the loop
+        self.code.append(f"jmp {start_label}")
+
+        # End label for exiting the loop
+        self.code.append(f"{end_label}")
+
 
     def generate_function_call(self, function_name, arguments):
         """Generate assembly for function calls."""
@@ -60,10 +117,11 @@ class CodeGenerator:
             self.generate_if_statement(statement)
         elif isinstance(statement, FunctionCall):
             self.generate_function_call(statement.name, statement.arguments)
-        elif isinstance(statement, ReturnStatement):
-            self.generate_return_statement(statement)
+        elif isinstance(statement, WhileStatement):  # Add support for while loops
+            self.generate_while_statement(statement)
         else:
             raise NotImplementedError(f"Unhandled statement type: {type(statement)}")
+
 
     def generate_variable_declaration(self, declaration):
         """Generate assembly for variable declarations."""
@@ -113,15 +171,19 @@ class CodeGenerator:
         else:
             self.code.append(f"ldi r3 {self.format_value(left)}")  # Load immediate value into r3
 
-        # Perform the operation
+        # Handle operators
         if operator == "+":
             self.code.append(f"adi r3 {self.format_value(right)}")  # Add immediate value to r3
         elif operator == "-":
-            self.code.append(f"sub r3 {self.format_value(right)}")  # Subtract immediate value from r3
+            self.code.append(f"ldi r1 {self.format_value(right)}")
+            self.code.append(f"sub r3 r1 r3")  # Subtract immediate value from r3
+        elif operator == "*":
+            self.code.append(f"//invalid function please implement it manually") # log some info
         else:
-            raise NotImplementedError(f"Unsupported operator: {operator}")
+            raise NotImplementedError(f"Unsupported operator: {operator}") # 
 
-        self.code.append(f"mov r1 r3")  # Store result in r1
+        self.code.append(f"mov r3 r1")  # Store result in r1
+
 
     def generate_condition(self, operator, left, right):
         """Generate assembly for conditions."""
@@ -160,6 +222,7 @@ class CodeGenerator:
             self.generate_expression(return_statement.value)
         self.code.append("ret")
 
+    
     def format_value(self, value):
         """Format values to support decimal, binary, and hexadecimal."""
         if isinstance(value, str) and (value.startswith("0b") or value.startswith("0x")):
