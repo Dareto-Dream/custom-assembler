@@ -8,7 +8,8 @@ public class Main {
         byte y = 4;
 
         // Basic arithmetic operations
-        byte sum  = (byte)(x + y);  // 15 + 4  = 19
+        // (byte) cast not necessary
+        byte sum  = x + y;  // 15 + 4  = 19
         byte diff = (byte)(x - y);  // 15 - 4  = 11
         byte prod = (byte)(x * y);  // 15 * 4  = 60
         byte quot = (byte)(x / y);  // 15 / 4  = 3  (floored)
