@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/binaryAssembler.iml" filepath="$PROJECT_DIR$/.idea/binaryAssembler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/VortexMCVM.iml" filepath="$PROJECT_DIR$/.idea/VortexMCVM.iml" />
     </modules>
   </component>
 </project>
