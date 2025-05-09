@@ -1,0 +1,10 @@
+import "display.vsc";
+import "math.vsc";
+
+public class Main {
+    public static void main() {
+        math.add();    // 5 + 3 = 8
+        string greeting = "HELLO!";
+        display.print_str();         // Print "HELLO!"
+    }
+}

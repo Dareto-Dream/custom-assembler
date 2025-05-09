@@ -167,8 +167,8 @@ def make_schematic(mc_filename, schem_filename):
 
     # Save
 
-    if schem_filename[-6:] == '.schem':
-        schem_filename = schem_filename[:-6]
+    if schem_filename.suffix == '.schem':
+        schem_filename = schem_filename.stem
 
     schem.save('.', schem_filename, version=mcschematic.Version.JE_1_18_2)
 

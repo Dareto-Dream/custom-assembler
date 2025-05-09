@@ -1,0 +1,7 @@
+public class Math {
+    public static void add() {
+        byte a = 5;
+        byte b = 3;
+        byte result = a + b;
+    }
+}

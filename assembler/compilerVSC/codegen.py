@@ -1,4 +1,4 @@
-from .parser import Program, Namespace, Class, Method, VariableDeclaration
+from .parser import Program, Namespace, Class, Method, VariableDeclaration, FunctionCall
 
 class CodeGenerator:
     def __init__(self):
@@ -28,6 +28,11 @@ class CodeGenerator:
         return "\n".join(self.code)
 
     def generate_statement(self, stmt):
+        if isinstance(stmt, FunctionCall):
+            label = stmt.name.replace('.', '_')  # Convert dot to underscore
+            self.code.append(f"CAL .{label}")
+            return
+
         if stmt.var_type == "string":
             def to_display_code(ch):
                 if ch == ' ':
