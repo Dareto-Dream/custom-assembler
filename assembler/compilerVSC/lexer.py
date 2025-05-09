@@ -21,9 +21,10 @@ TOKEN_SPECIFICATION = [
     ('COMMA',       r','),
     ('DOT',         r'\.'),
     # Keywords and identifiers
-    ('KEYWORD',     r'\b(?:package|import|public|class|byte|bool|const|true|false|if|else|while|for)\b'),
+    ('KEYWORD',     r'\b(?:package|import|public|class|byte|bool|const|true|false|if|else|while|for|string)\b'),
     ('IDENTIFIER',  r'[A-Za-z_][A-Za-z0-9_]*'),
     # Literals
+    ('STRING',      r'"[^"\n]*"'),  # Double-quoted string
     ('NUMBER',      r'\d+'),
 ]
 

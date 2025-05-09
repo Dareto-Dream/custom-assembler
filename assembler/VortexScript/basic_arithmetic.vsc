@@ -14,5 +14,8 @@ public class Main {
         byte prod = (byte)(x * y);  // 15 * 4  = 60
         byte quot = (byte)(x / y);  // 15 / 4  = 3  (floored)
         byte rem  = (byte)(x % y);  // 15 % 4  = 3
+
+        // String saving
+        string greeting = "HELLO!";
     }
 }

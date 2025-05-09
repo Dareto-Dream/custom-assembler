@@ -28,6 +28,31 @@ class CodeGenerator:
         return "\n".join(self.code)
 
     def generate_statement(self, stmt):
+        if stmt.var_type == "string":
+            def to_display_code(ch):
+                if ch == ' ':
+                    return 0
+                elif 'A' <= ch <= 'Z':
+                    return ord(ch) - 64
+                elif ch == '.':
+                    return 27
+                elif ch == '!':
+                    return 28
+                elif ch == '?':
+                    return 29
+                else:
+                    raise ValueError(f"Unsupported char: {ch}")
+
+            addr = self.alloc_mem(stmt.name)
+            self.code.append(f"LDI r14 {addr}")  # Load base address into r14
+            for i, ch in enumerate(stmt.value.upper()):  # uppercase for screen codes
+                code = to_display_code(ch)
+                self.code.append(f"LDI r1 {code}")
+                self.code.append(f"STR r14 r1 {i}")
+            self.code.append(f"LDI r1 0")  # Null terminator
+            self.code.append(f"STR r14 r1 {len(stmt.value)}")
+            return
+
         assert isinstance(stmt, VariableDeclaration)
         dst = self.alloc_reg(stmt.name)
         val = stmt.value

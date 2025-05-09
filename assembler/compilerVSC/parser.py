@@ -23,7 +23,7 @@ class Method:
         self.body: List[VariableDeclaration] = []
 
 class VariableDeclaration:
-    def __init__(self, var_type: str, name: str, value: Union[int, Tuple[str, Union[int,str], Union[int,str]]]):
+    def __init__(self, var_type: str, name: str, value: Union[int, str, Tuple[str, Union[int,str], Union[int,str]]]):
         self.var_type = var_type
         self.name = name
         self.value = value
@@ -63,39 +63,39 @@ class Parser:
         return program
 
     def parse_statement(self) -> VariableDeclaration:
-        if self.check('KEYWORD', 'byte'):
+        if self.check('KEYWORD', 'byte') or self.check('KEYWORD', 'string'):
             return self.parse_var_declaration()
-        # Unexpected token
         raise SyntaxError(f"Unexpected token in statement: {self.peek()}")
 
     def parse_var_declaration(self) -> VariableDeclaration:
-        # 'byte' IDENTIFIER '=' optional '(byte)' optional '(' expr ')' ';'
         var_type = self.consume('KEYWORD')[1]
         name = self.consume('IDENTIFIER')[1]
         self.consume('ASSIGN')
 
-        # Optional cast: (byte)
-        if self.check('LPAREN') and self.check_next('KEYWORD', 'byte'):
-            self.consume('LPAREN'); self.consume('KEYWORD', 'byte'); self.consume('RPAREN')
-
-        # Optional extra parentheses around expression
-        if self.check('LPAREN'):
-            self.consume('LPAREN')
-            value = self.parse_expression()
-            self.consume('RPAREN')
+        # Handle string literal directly
+        if self.check('STRING'):
+            value = self.consume('STRING')[1].strip('"')
         else:
-            value = self.parse_expression()
+            # Optional cast: (byte)
+            if self.check('LPAREN') and self.check_next('KEYWORD', 'byte'):
+                self.consume('LPAREN'); self.consume('KEYWORD', 'byte'); self.consume('RPAREN')
+
+            # Optional extra parentheses around expression
+            if self.check('LPAREN'):
+                self.consume('LPAREN')
+                value = self.parse_expression()
+                self.consume('RPAREN')
+            else:
+                value = self.parse_expression()
 
         self.consume('SEMI')
         return VariableDeclaration(var_type, name, value)
 
     def parse_expression(self) -> Union[int, Tuple[str, Union[int,str], Union[int,str]]]:
-        # parse left operand
         if self.check('NUMBER'):
             left = self.consume('NUMBER')[1]
         else:
             left = self.consume('IDENTIFIER')[1]
-        # optional binary operator
         if self.check('OP'):
             op = self.consume('OP')[1]
             if self.check('NUMBER'):
